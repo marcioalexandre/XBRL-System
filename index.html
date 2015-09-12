@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>XBRLFramework System</title>
+</head>
+ 	
+<script type="text/javascript">
+
+function enableElements(x){
+	document.getElementById('element-id'+x).disabled=false;
+	document.getElementById('element-name'+x).disabled=false;
+	document.getElementById('element-decimal'+x).disabled=false;
+	document.getElementById('element-unit'+x).disabled=false;
+	document.getElementById('element-context'+x).disabled=false;
+	document.getElementById('element-value'+x).disabled=false;
+}
+
+function unableElements(x){
+	document.getElementById('element-id'+x).disabled=true;
+	document.getElementById('element-name'+x).disabled=true;
+	document.getElementById('element-decimal'+x).disabled=true;
+	document.getElementById('element-unit'+x).disabled=true;
+	document.getElementById('element-context'+x).disabled=true;
+	document.getElementById('element-value'+x).disabled=true;
+}
+
+function action(x){
+	document.getElementById('thAction').innerHTML = "Action";
+	document.getElementById('tdAction'+x).innerHTML = "<input type='button' value='save'>";
+}
+	
+function loadXBRLDoc(filename)
+{
+	if (window.XMLHttpRequest)
+	  {
+	  	xhttp=new XMLHttpRequest();
+	  }
+	else // code for IE5 and IE6
+	  {
+	  	xhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	  }
+	xhttp.open("GET",filename,false);
+	xhttp.send();
+	return xhttp.responseXML;
+} 
+
+function xbrlElementsLoader(){
+
+	var content = "";
+	var filename = "fb-20131231.xml"
+	try{
+		var xbrlDoc=loadXBRLDoc(filename);
+		var childNodes = xbrlDoc.documentElement.childNodes;
+	}catch(e){
+		var myWindow = window.open("", "MsgWindow", "width=200, height=100");
+		myWindow.document.write("<p>The intended file cannot be load! Error: "+e+"</p>");
+	}
+
+	var company = xbrlDoc.getElementsByTagName("dei:EntityRegistrantName")[0].childNodes[0].nodeValue;
+	//alert(company);
+	content = content.concat("Company: "+company+".<br>");
+	//create a table which contains the XBRL Instance data
+	content = content.concat("<table class='table table-striped'><thead><tr>"+
+							 "<th>#</th>"+
+							 "<th id='thAction'></th>"+
+			                 "<th>Id</th>"+
+			                 "<th>Name</th>"+
+			                 "<th>Decimals</th>"+
+			                 "<th>Unit</th>"+
+			                 "<th>Context</th>"+
+			                 "<th>Value</th></tr></thead><tbody>");
+	/** Catching the periods of the XBRL instance
+	var periods = xmlDoc.getElementByTagName("xbrli:period");
+	alert("quantos periodo:"+periods.length);
+	for (var i = 0; i < periods.length; i++){
+		//alert("Periodo:"+periods[i].childNodes[0].nodeValue+"-"periods[i].childNodes[1].nodeValue);
+	}*/
+	var j=0;
+	for(var i = 0; i < childNodes.length; i++)
+	{
+		var node = childNodes[i]; //next node
+		if(node.nodeType !== Node.TEXT_NODE) //verify if the XML line is empty
+		{
+			
+			if (node.localName != "context" && node.localName != "schemaRef" && node.localName != "unit" && node.localName != "footnoteLink")
+			{
+				j++;
+				try
+				  {	
+					var txt = "";					
+					if (node.hasAttribute("unitRef")){
+						//elements with unitRef and node value
+						txt = "<tr onclick='enableElements("+j+")' ondblclick='unableElements("+j+")'>"+
+						"<td>"+j+".</td>"+
+						"<td id='tdAction"+j+"'></td>"+
+						"<td><textarea onkeypress='action("+j+")' onfocus='enableElements("+j+")' rows='2' cols='10' disabled id='element-id"+j+"'>"+node.getAttribute('id')+"</textarea></td>"+
+						"<td><textarea onkeypress='action("+j+")' onfocus='enableElements("+j+")' rows='2' cols='25' disabled id='element-name"+j+"'>"+node.localName+"</textarea></td>"+
+						"<td><textarea onkeypress='action("+j+")' onfocus='enableElements("+j+")' rows='1' cols='5' disabled id='element-decimal"+j+"'>"+node.getAttribute('decimals')+"</textarea></td>"+
+						"<td><textarea onkeypress='action("+j+")' onfocus='enableElements("+j+")' rows='1' cols='5' disabled id='element-unit"+j+"'>"+node.getAttribute('unitRef')+"</textarea></td>"+
+						"<td><textarea onkeypress='action("+j+")' onfocus='enableElements("+j+")' rows='1' cols='25' disabled id='element-context"+j+"'>"+node.getAttribute('contextRef')+"</textarea></td>"+ 
+						"<td><textarea onkeypress='action("+j+")' onfocus='enableElements("+j+")' rows='2' cols='30' disabled id='element-value"+j+"'>"+xbrlDoc.getElementsByTagName(node.nodeName)[0].childNodes[0].nodeValue+"</textarea></td>"+
+						"<tr>";
+					}else{
+						//elements without unitRef
+						txt = "<tr onclick='enableElements("+j+")' ondblclick='unableElements("+j+")'>"+
+						"<td>"+j+".</td>"+
+						"<td id='tdAction"+j+"'></td>"+
+						"<td><textarea onkeypress='action("+j+")' onfocus='enableElements("+j+")' rows='2' cols='10' disabled id='element-id"+j+"'>"+node.getAttribute('id')+"</textarea></td>"+
+						"<td><textarea onkeypress='action("+j+")' onfocus='enableElements("+j+")' rows='2' cols='25' disabled id='element-name"+j+"'>"+node.localName+"</textarea></td>"+
+						"<td><textarea onkeypress='action("+j+")' onfocus='enableElements("+j+")' rows='1' cols='5' disabled id='element-decimal"+j+"'>"+node.getAttribute('decimals')+"</textarea></td>"+
+						"<td><textarea onkeypress='action("+j+")' onfocus='enableElements("+j+")' rows='1' cols='5' disabled id='element-unit"+j+"'>"+node.getAttribute('unitRef')+"</textarea></td>"+
+						"<td><textarea onkeypress='action("+j+")' onfocus='enableElements("+j+")' rows='1' cols='25' disabled id='element-context"+j+"'>"+node.getAttribute('contextRef')+"</textarea></td>"+ 
+						"<td><textarea onkeypress='action("+j+")' onfocus='enableElements("+j+")' rows='2' cols='30' disabled id='element-value"+j+"'>"+xbrlDoc.getElementsByTagName(node.nodeName)[0].childNodes[0].nodeValue+"</textarea></td>"+
+						"<tr>";
+					}
+					
+				  }catch(e) {
+					  //alert("XML Error:"+e.message);
+					  //elements with unitRef however without node value 
+						txt = "<tr onclick='enableElements("+j+")' ondblclick='unableElements("+j+")'>"+
+						"<td>"+j+".</td>"+
+						"<td id='tdAction"+j+"'></td>"+
+						"<td><textarea onkeypress='action("+j+")' onfocus='enableElements("+j+")' rows='2' cols='10' disabled id='element-id"+j+"'>"+node.getAttribute('id')+"</textarea></td>"+
+						"<td><textarea onkeypress='action("+j+")' onfocus='enableElements("+j+")' rows='2' cols='25' disabled id='element-name"+j+"'>"+node.localName+"</textarea></td>"+
+						"<td><textarea onkeypress='action("+j+")' onfocus='enableElements("+j+")' rows='1' cols='5' disabled id='element-decimal"+j+"'>"+node.getAttribute('decimals')+"</textarea></td>"+
+						"<td><textarea onkeypress='action("+j+")' onfocus='enableElements("+j+")' rows='1' cols='5' disabled id='element-unit"+j+"'>"+node.getAttribute('unitRef')+"</textarea></td>"+
+						"<td><textarea onkeypress='action("+j+")' onfocus='enableElements("+j+")' rows='1' cols='25' disabled id='element-context"+j+"'>"+node.getAttribute('contextRef')+"</textarea></td>"+
+						"<td><textarea onkeypress='action("+j+")' onfocus='enableElements("+j+")' rows='2' cols='30' disabled id='element-value"+j+"'>no value</textarea></td>"+
+						"<tr>";
+				  }
+				  content = content.concat(txt);
+				  node = '';
+			}
+			
+		}
+		
+	}
+	content = content.concat("</tbody></table>");
+	document.getElementById('tblContent').innerHTML = content;
+}
+</script>
+
+  <body onload="xbrlElementsLoader()">
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar">Toggle navigation</span>
+            <span class="icon-bar">Toggle navigation</span>
+            <span class="icon-bar">Toggle navigation</span>
+          </button>
+          <a class="navbar-brand" href="#">XBRL Framework System</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#">Dashboard</a></li>
+            <li><a href="#">Help</a></li>
+          </ul>
+          <form class="navbar-form navbar-right">
+            <input type="text" class="form-control" placeholder="Search...">
+          </form>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#">XBRL Instance</a></li>
+            <li><a href="#">XBRL Schema</a></li>
+            <li><a href="#">XBRL Linkbases</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+        <div class="main">
+          <h2 class="sub-header">Instance Facts</h2>
+          <div class="table-responsive" id="tblContent">
+			<!--  table -->
+          </div>
+        </div>
+      </div>
+	</div><!-- <div class="main">  -->
+  </body>
+      <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+        <!-- Custom styles for this template -->
+    <link href="js-files/bootstrap-3.3.4/dashboard.css" rel="stylesheet">
+    <link rel="stylesheet" href="js-files/bootstrap-3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="js-files/bootstrap-3.3.4/css/bootstrap.css">
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9] -->
+      <script src="js-files/html5shiv-3.7.2/html5shiv.min.js"></script>
+      <script src="js-files/respond-1.4.2/respond.min.js"></script>
+    <!-- [endif]-->
+  	<!-- /Bootstrap core JavaScript-->
+</html>
